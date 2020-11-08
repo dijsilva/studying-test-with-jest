@@ -1,29 +1,37 @@
-const { DataTypes, Model } = require('sequelize');
+const bcryptjs = require('bcryptjs')
 
-class User extends Model {
-    static init (sequelize){
-        super.init({
-            first_name: {
-                type: DataTypes.STRING,
-                allowNull: false
-              },
-            last_name: {
-                type: DataTypes.STRING
-              },
-            password: {
-              type: DataTypes.STRING,
-              allowNull: false
-            },
-            email: {
-                  type: DataTypes.STRING,
-                  allowNull: false
-                }
-        }, {
-            // Other model options go here
-            sequelize, // We need to pass the connection instance
-            modelName: 'User' // We need to choose the model name
-        })
+module.exports = (sequelize, DataTypes) => {
+  const User = sequelize.define(
+    "User", 
+    {
+    first_name: {
+      type: DataTypes.STRING,
+      },
+    last_name: {
+      type: DataTypes.STRING
+      },
+    password: {
+      type: DataTypes.VIRTUAL,
+      },
+    password_hash: {
+    type: DataTypes.STRING,
+      },
+    email: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        }
+    }, 
+    {
+    hooks: {
+      beforeSave: async (user) => {
+        if (user.password){
+          user.password_hash = await bcryptjs.hash(user.password, 8)
+        }
+      }
     }
-}
+  }
+)
 
-module.exports =  User;
+  return User;
+}
